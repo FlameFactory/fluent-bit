@@ -130,6 +130,25 @@ jobs:
             FLB_NIGHTLY_BUILD=${{ inputs.unstable }}
             RELEASE_VERSION=${{ inputs.version }}
 
+      - name: Build the production images (arm64 64K page)
+        id: build_push
+        uses: docker/build-push-action@v5
+        with:
+          file: ./dockerfiles/Dockerfile
+          context: .
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/arm64
+          target: production
+          # Must be disabled to provide legacy format images from the registry
+          provenance: false
+          push: true
+          load: false
+          build-args: |
+            FLB_NIGHTLY_BUILD=${{ inputs.unstable }}
+            RELEASE_VERSION=${{ inputs.version }}
+            FLB_BUILD_OPTS=-DFLB_JEMALLOC_OPTIONS=--with-lg-page=16
+
       - id: debug-meta
         uses: docker/metadata-action@v5
         with:
